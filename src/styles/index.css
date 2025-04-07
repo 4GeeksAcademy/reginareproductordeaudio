@@ -1,11 +1,41 @@
-/* 
+.mp3-player {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
 
-    You can write your own styles here...
-    
-    
-    ...Or you can use the import command to include 
-    other sylesheets into your bunde as well, e.j:
-    
-    import 'relative/path/to/stylesheet.scss';
+.song-list {
+  margin-bottom: 20px;
+}
 
-*/
+.song-item {
+  cursor: pointer;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  display: inline-block;
+  width: 200px;
+  text-align: center;
+}
+
+.song-item:hover {
+  background-color: #f0f0f0;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
