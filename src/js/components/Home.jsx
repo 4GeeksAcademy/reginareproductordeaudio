@@ -1,87 +1,152 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-const MP3Player = () => {
-  const [songs, setSongs] = useState([
-    { id: 1, title: 'Efecto 1', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-    { id: 2, title: 'Efecto 2', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-    { id: 3, title: 'Efecto 3', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  ]);
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+const Home = () => {
+  const [songs, setSongs] = useState([]);
+  const [songIndex, setSongIndex] = useState(0);
+  const audio = useRef(null);
 
   useEffect(() => {
-    if (songs.length > 0 && audioRef.current) {
-      const currentSong = songs[currentSongIndex];
-      if (currentSong && currentSong.url) {
-        audioRef.current.src = currentSong.url;
-        audioRef.current.load();
-        console.log('Reproduciendo:', currentSong.title);
-      }
-    }
-  }, [currentSongIndex, songs]);
+    fetch("https://playground.4geeks.com/sound/songs")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("ha ocurrido un error");
+        }
+        return response.json();
+      })
+      .then((dataRecived) => {
+        console.log(dataRecived);
+        setSongs(dataRecived.songs);
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
+  }, []);
 
-  const playSong = () => {
-    if (audioRef.current) {
-      audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((error) => {
-          console.error('Error al intentar reproducir la canción:', error);
-        });
-    }
+  const playSong = (index) => {
+    setSongIndex(index);
+    audio.current.src = `https://playground.4geeks.com${songs[index].url}`;
+    audio.current.load();
+    audio.current.play();
   };
 
-  const stopSong = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-    }
+  const pauseSong = () => {
+    audio.current.pause();
   };
 
-  const handleNext = () => {
-    const nextIndex = (currentSongIndex + 1) % songs.length;
-    setCurrentSongIndex(nextIndex);
+  const nextSong = () => {
+    const next = songIndex >= songs.length - 1 ? 0 : songIndex + 1;
+    playSong(next);
   };
 
-  const handlePrevious = () => {
-    const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    setCurrentSongIndex(prevIndex);
-  };
-
-  const handleSongClick = (index) => {
-    setCurrentSongIndex(index);
-    playSong();
+  const prevSong = () => {
+    const prev = songIndex > 0 ? songIndex - 1 : songs.length - 1;
+    playSong(prev);
   };
 
   return (
-    <div className="mp3-player">
-      <h1>Reproductor MP3</h1>
-      <div className="song-list">
-        {songs.map((song, index) => (
-          <div
-            key={song.id}
-            className="song-item"
-            onClick={() => handleSongClick(index)}
+    <>
+      <nav
+        style={{
+          backgroundColor: "#FFC0CB",
+          padding: "20px",
+          textAlign: "center",
+          borderBottom: "5px solid #FF69B4",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            color: "#FF1493",
+            fontFamily: "'Comic Sans MS', cursive, sans-serif",
+          }}
+        >
+          Reproductor de Audio 
+        </span>
+      </nav>
+      <div style={{ padding: "20px", backgroundColor: "#FFF0F5", minHeight: "calc(100vh - 200px)" }}>
+        <ol
+          className="list-group list-group-numbered"
+          style={{
+            padding: "0",
+            listStyle: "none",
+            margin: "0 auto",
+            maxWidth: "400px",
+          }}
+        >
+          {songs.map((song, index) => (
+            <li
+              key={song.id}
+              style={{
+                backgroundColor: songIndex === index ? "#FFB6C1" : "#FFFFFF",
+                border: "2px solid #FF69B4",
+                borderRadius: "10px",
+                padding: "10px",
+                margin: "10px 0",
+                cursor: "pointer",
+                textAlign: "center",
+                fontFamily: "'Comic Sans MS', cursive, sans-serif",
+                color: "#FF1493",
+              }}
+              onClick={() => playSong(index)}
+            >
+              {song.name}
+            </li>
+          ))}
+        </ol>
+      </div>
+      <footer
+        style={{
+          position: "fixed",
+          bottom: "0",
+          width: "100%",
+          backgroundColor: "#FFC0CB",
+          padding: "20px",
+          borderTop: "5px solid #FF69B4",
+          textAlign: "center",
+        }}
+      >
+        <audio ref={audio}></audio>
+        <div className="d-flex justify-content-around align-items-center fs-1">
+          <button
+            style={buttonStyle}
+            onClick={prevSong}
           >
-            <p>{song.title}</p>
-          </div>
-        ))}
-      </div>
-
-      <audio ref={audioRef} controls />
-      
-      <div className="controls">
-        <button onClick={handlePrevious}>Anterior</button>
-        <button onClick={isPlaying ? stopSong : playSong}>
-          {isPlaying ? 'Pausar' : 'Reproducir'}
-        </button>
-        <button onClick={handleNext}>Siguiente</button>
-      </div>
-    </div>
+            <i className="bi bi-skip-backward-fill"></i>
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={pauseSong}
+          >
+            <i className="bi bi-pause-fill"></i>
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={() => playSong(songIndex)}
+          >
+            <i className="bi bi-play-fill"></i>
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={nextSong}
+          >
+            <i className="bi bi-skip-forward-fill"></i>
+          </button>
+        </div>
+      </footer>
+    </>
   );
 };
 
-export default MP3Player;
+const buttonStyle = {
+  backgroundColor: "#FF69B4",
+  border: "none",
+  borderRadius: "50%",
+  color: "#FFFFFF",
+  fontSize: "24px",
+  padding: "15px",
+  cursor: "pointer",
+  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+};
+
+export default Home;
